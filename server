@@ -1,13 +1,36 @@
 #!/usr/bin/env node
 var spawn = require('child_process').spawn;
 var args = require('minimist')(process.argv);
-
+var app = require('express')();
+var _ = require('lodash');
+var fs = require('fs');
+var path = require('path');
 var dir = args.dir || args.d || __dirname;
 
+/**
+ * Returns a list movies with the newest at the top. */
+function indexMovies(callback) {
+  fs.readdir(dir, function(err, files) {
+    if (err) return callback(err);
+    var movieFiles = _.filter(files, function(filename) {
+      return filename[0] !== "." && path.extname(filename) === ".avi";
+    })
+    var movies = _.map(movieFiles, function(filename) {
+      var date = new Date();
+      var match = filename.match(/\d+-(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/);
+      date.setYear(parseInt(match[1]))
+      date.setMonth(parseInt(match[2])-1)
+      date.setDate(parseInt(match[3]))
+      date.setHours(parseInt(match[4]))
+      date.setMinutes(parseInt(match[5]))
+      date.setSeconds(parseInt(match[6]))
+      return { time: date, path: "/movies/"+filename }
+    })
+    movies = _.sortBy(movies, function(m) { return -m.time });
+    return callback(null, movies);
+  })
+}
 
-var app = require('express')();
-
-var fs = require('fs');
 
 function convert(avi, mp4, callback) {
   spawn('ffmpeg', ['-i', avi, '-f', 'mp4', mp4 ])
@@ -37,8 +60,12 @@ app.get('/movies/:basename.:ext', function(req, res) {
   }
 });
 
-//app.get('/movies/', function(req, res) {
+app.get('/movies', function(req, res) {
+  indexMovies(function(err, movies) {
+    if (err) throw err;
+    res.json(movies);
+  });
+})
 
 app.listen(8000)
-
 console.log('Serving dir: '+dir);
