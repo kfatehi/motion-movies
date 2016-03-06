@@ -4,28 +4,15 @@ var args = require('minimist')(process.argv);
 
 var dir = args.dir || args.d || __dirname;
 
-console.log('Serving dir: '+dir);
 
 var app = require('express')();
 
 var fs = require('fs');
 
 function convert(avi, mp4, callback) {
-  var ffmpeg = spawn('ffmpeg', [
-    '-i', avi,
-    '-f', 'mp4',
-    mp4
-  ])
-
-  ffmpeg.stderr.on('data', function(buf) {
-    console.log(buf.toString());
-  });
-  
-  ffmpeg.on('exit', function() {
-    callback();
-  })
+  spawn('ffmpeg', ['-i', avi, '-f', 'mp4', mp4 ])
+  .on('exit', function() { callback() })
 }
-
 
 app.get('/movies/:basename.:ext', function(req, res) {
   var avi = dir+"/"+req.params.basename+".avi"
@@ -50,6 +37,8 @@ app.get('/movies/:basename.:ext', function(req, res) {
   }
 });
 
+//app.get('/movies/', function(req, res) {
+
 app.listen(8000)
 
-console.log('ready');
+console.log('Serving dir: '+dir);
