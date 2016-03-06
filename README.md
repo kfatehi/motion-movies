@@ -17,3 +17,17 @@ Assuming your movies are in /Volumes/service/cameras start it up with:
 
 * node
 * ffmpeg
+
+## Getting ffmpeg
+
+### mac
+
+`brew install ffmpeg`
+
+### ubuntu
+
+```
+sudo add-apt-repository ppa:kirillshkrogalev/ffmpeg-next
+sudo apt-get update
+sudo apt-get install ffmpeg
+```
